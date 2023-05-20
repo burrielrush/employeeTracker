@@ -1,22 +1,19 @@
-INSERT INTO department (title)
+INSERT INTO department (department_name)
 VALUES 
-    ("Management")
-    ("Medical")
-    ("Production")
+    ("Management"),
+    ("Medical"),
+    ("Production");
 
-
-INSERT INTO employee (department_id, title, firstname, lastname, salary, manager)
+INSERT INTO roles (title, salary, department_id)
 VALUES
-  ("Management", "Center Manager", "Mickey", "Moose", "$100k", "None"),
-  ("Management", "Assistant Manager", "Bob", "Roberts", "$75k", "Mickey Moose"),
-  ("Medical", "Nurse", "Courtney", "Foods", "$75k", "Mickey Moose"),
-  ("Production", "Phlebotomist", "Russ", "Burrito", "$60k", "Mickey Moose");
+  ("Center Manager", 100000, 1),
+  ("Assistant Manager", 75000, 1),
+  ("Nurse", 75000, 2),
+  ("Phlebotomist", 60000, 3);
 
-
-
-INSERT INTO role (title, salary, department_id)
+INSERT INTO employee (firstname, lastname, role_id, manager_id)
 VALUES
-  ("Center Manager", "$100k","Management"),
-  ("Assistant Manager", "$75k","Management"),
-  ("Nurse", "$75k", "Medical"),
-  ("Phlebotomist", "$60k", "Production");
+  ("Mickey", "Moose", 1, NULL),
+  ("Bob", "Roberts", 2, 1),
+  ("Courtney", "Foods", 3, 1),
+  ("Russ", "Burrito", 4, 1);

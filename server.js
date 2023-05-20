@@ -17,48 +17,46 @@ db.connect((err) => {
   console.log("Connecting to the database: ");
   start();
 });
-console.log("Connected to the employeeTracker_db database.");
 
-// Add an employee to the database
+
 function start() {
-  inquirer
-    .prompt({
+  inquirer.prompt({
       type: "list",
       name: "start",
       message: "Pick an option!",
       choices: [
-        "See all Employees",
-        "See all Roles",
-        "See all Departments",
+        "View all Employees",
+        "View all Roles",
+        "View all Departments",
         "Add Employees to database",
-        "Add Roles to database",
-        "Add Departments to database",
+        "Add Role to database",
+        "Add Department to database",
         "Update Employees role",
         "Exit prompts",
       ],
     })
-    .then((answer) => {
+    .then(answer => {
       switch (answer.start) {
-        case "View all Employees":
-          viewEmployees();
+        case "View an Employee":
+          viewEmployee();
           break;
-        case "View all Roles":
+        case "View Employee roles":
           viewRoles();
           break;
         case "View all Departments":
-          viewDepartments();
+          viewDepartment();
           break;
         case "Add an Employee to the database":
           addEmployee();
           break;
-        case "Add Roles to the database":
-          addRole();
+        case "Add Role to the database":
+          addRoles();
           break;
-        case "Add Departments to the database":
-          addDepartments();
+        case "Add Department to the database":
+          addDepartment();
           break;
-        case "Change Roles in database":
-          updateRole();
+        case "Update employees roles":
+          updateRoles();
           break;
         case "Escape":
           db.end();
@@ -67,9 +65,9 @@ function start() {
     });
 }
 
-// Function to view all departments
-function viewDepartments() {
-  const sql = `SELECT * FROM department`;
+// Function to view all employees
+function viewEmployee() {
+  const sql = `SELECT * FROM employee`;
 
   db.query(sql, (err, res) => {
     if (err) throw err;
@@ -80,7 +78,7 @@ function viewDepartments() {
 
 // Function to view all roles
 function viewRoles() {
-  const sql = `SELECT * FROM role`;
+  const sql = `SELECT * FROM roles`;
 
   db.query(sql, (err, res) => {
     if (err) throw err;
@@ -89,9 +87,9 @@ function viewRoles() {
   });
 }
 
-// Function to view all employees
-function viewEmployees() {
-  const sql = `SELECT * FROM employee`;
+// Function to view all departments
+function viewDepartment() {
+  const sql = `SELECT * FROM department`;
 
   db.query(sql, (err, res) => {
     if (err) throw err;
@@ -99,6 +97,61 @@ function viewEmployees() {
     start();
   });
 }
+
+// Function to add an employee
+
+function addEmployee() {
+  db.query(`SELECT * FROM roles`, (err, res) => {
+    if (err) throw err;
+    inquirer
+      .prompt([
+        {
+          type: "input",
+          name: "firstname",
+          message:
+            "What is the first name of the employee you would like to add?",
+        },
+        {
+          type: "input",
+          name: "lastname",
+          message:
+            "What is the last name of the employee you would like to add?",
+        },
+        {
+          type: "list",
+          name: "roles",
+          message: "What is the role of the employee you would like to add?",
+          choices: res.map((role) => role.title),
+        },
+        {
+          type: "list",
+          name: "manager",
+          message: "Who is the manager of the employee you would like to add?",
+          choices: res.map((manager) => manager.title),
+        },
+      ])
+      .then((answer) => {
+        const role = res.find((role) => role.title === answer.role);
+        const manager = res.find((manager) => manager.title === answer.manager);
+        const sql = `INSERT INTO employee (firstname, lastname, role_id, manager_id) VALUES (?, ?, ?, ?)`;
+        const params = [
+          answer.firstname,
+          answer.lastname,
+          role.id,
+          manager.id,
+        ];
+
+        db.query(sql, params, (err, res) => {
+          if (err) throw err;
+          console.log(
+            `Added employee ${answer.firstname} ${answer.lastname} to the database.`
+          );
+          start();
+        });
+      });
+  });
+}
+
 
 // Function to add a department
 function addDepartment() {
@@ -110,7 +163,7 @@ function addDepartment() {
     })
     .then((answer) => {
       console.log(answer.name);
-      const sql = `INSERT INTO department (department_name) VALUES ("${answer.name}")`;
+      const sql = `INSERT INTO department (department) VALUES ("${answer.name}")`;
 
       db.query(sql, (err, res) => {
         if (err) throw err;
@@ -122,7 +175,7 @@ function addDepartment() {
 }
 
 // Function to add a role
-function addRole() {
+function addRoles() {
   const sql = `SELECT * FROM department`;
   db.query(sql, (err, res) => {
     if (err) throw err;
@@ -153,7 +206,7 @@ function addRole() {
       ])
       .then((answer) => {
         const departmentId = answer.department;
-        const sql = `INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)`;
+        const sql = `INSERT INTO role (title, salary, department) VALUES (?, ?, ?)`;
         db.query(
           sql,
           [answer.title, answer.salary, departmentId],
@@ -167,64 +220,11 @@ function addRole() {
   });
 }
 
-// Function to add an employee
-
-function addEmployee() {
-  db.query(`SELECT * FROM role`, (err, res) => {
-    if (err) throw err;
-    inquirer
-      .prompt([
-        {
-          type: "input",
-          name: "firstname",
-          message:
-            "What is the first name of the employee you would like to add?",
-        },
-        {
-          type: "input",
-          name: "lastname",
-          message:
-            "What is the last name of the employee you would like to add?",
-        },
-        {
-          type: "list",
-          name: "role",
-          message: "What is the role of the employee you would like to add?",
-          choices: res.map((role) => role.title),
-        },
-        {
-          type: "list",
-          name: "manager",
-          message: "Who is the manager of the employee you would like to add?",
-          choices: res.map((manager) => manager.title),
-        },
-      ])
-      .then((answer) => {
-        const role = res.find((role) => role.title === answer.role);
-        const manager = res.find((manager) => manager.title === answer.manager);
-        const sql = `INSERT INTO employee (firstname, lastname, role_id, manager_id) VALUES (?, ?, ?, ?)`;
-        const params = [
-          answer.first_name,
-          answer.last_name,
-          role.id,
-          manager.id,
-        ];
-
-        db.query(sql, params, (err, res) => {
-          if (err) throw err;
-          console.log(
-            `Added employee ${answer.first_name} ${answer.last_name} to the database.`
-          );
-          start();
-        });
-      });
-  });
-}
 
 // Function to update an employee role
-function updateEmployeeRole() {
+function updateRole() {
   const sql = `SELECT * FROM employee`;
-  const sqlRoles = `SELECT * FROM role`;
+  const sqlRoles = `SELECT * FROM roles`;
 
   db.query(sql, (err, res) => {
     if (err) throw err;
@@ -240,7 +240,7 @@ function updateEmployeeRole() {
           },
           {
             type: "list",
-            name: "role",
+            name: "roles",
             message: "What is the new role of the employee?",
             choices: resRoles.map((role) => role.title),
           },
