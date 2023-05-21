@@ -20,7 +20,8 @@ db.connect((err) => {
 
 
 function start() {
-  inquirer.prompt({
+  inquirer
+    .prompt({
       type: "list",
       name: "start",
       message: "Pick an option!",
@@ -35,35 +36,36 @@ function start() {
         "Exit prompts",
       ],
     })
-    .then(answer => {
+    .then((answer) => {
       switch (answer.start) {
-        case "View an Employee":
+        case "View all Employees":
           viewEmployee();
           break;
-        case "View Employee roles":
+        case "View all Roles":
           viewRoles();
           break;
         case "View all Departments":
           viewDepartment();
           break;
-        case "Add an Employee to the database":
+        case "Add Employees to database":
           addEmployee();
           break;
-        case "Add Role to the database":
+        case "Add Role to database":
           addRoles();
           break;
-        case "Add Department to the database":
+        case "Add Department to database":
           addDepartment();
           break;
-        case "Update employees roles":
+        case "Update Employees role":
           updateRoles();
           break;
-        case "Escape":
+        case "Exit prompts":
           db.end();
           break;
       }
     });
 }
+
 
 // Function to view all employees
 function viewEmployee() {
@@ -137,7 +139,7 @@ function addEmployee() {
         const params = [
           answer.firstname,
           answer.lastname,
-          role.id,
+          role,
           manager.id,
         ];
 
@@ -163,7 +165,7 @@ function addDepartment() {
     })
     .then((answer) => {
       console.log(answer.name);
-      const sql = `INSERT INTO department (department) VALUES ("${answer.name}")`;
+      const sql = `INSERT INTO department (department_name) VALUES ("${answer.name}")`;
 
       db.query(sql, (err, res) => {
         if (err) throw err;
@@ -199,14 +201,14 @@ function addRoles() {
         },
         {
           type: "list",
-          name: "department",
+          name: "department_id",
           message: "Which department does this role belong to?",
           choices: departmentchoices,
         },
       ])
       .then((answer) => {
         const departmentId = answer.department;
-        const sql = `INSERT INTO role (title, salary, department) VALUES (?, ?, ?)`;
+        const sql = `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
         db.query(
           sql,
           [answer.title, answer.salary, departmentId],
@@ -222,7 +224,7 @@ function addRoles() {
 
 
 // Function to update an employee role
-function updateRole() {
+function updateRoles() {
   const sql = `SELECT * FROM employee`;
   const sqlRoles = `SELECT * FROM roles`;
 
@@ -236,27 +238,27 @@ function updateRole() {
             type: "list",
             name: "employee",
             message: "Which employee would you like to update?",
-            choices: res.map((employee) => employee.first_name),
+            choices: res.map((employee) => employee.firstname),
           },
           {
             type: "list",
             name: "roles",
             message: "What is the new role of the employee?",
-            choices: resRoles.map((role) => role.title),
+            choices: resRoles.map((roles) => roles.title),
           },
         ])
         .then((answer) => {
           const employee = res.find(
-            (employee) => employee.first_name === answer.employee
+            (employee) => employee.firstname === answer.employee
           );
-          const role = resRoles.find((role) => role.title === answer.role);
+          const roles = resRoles.find((roles) => roles.title === answer.roles);
           const sql = `UPDATE employee SET role_id = ? WHERE id = ?`;
-          const params = [role.id, employee.id];
+          const params = [roles.id, employee.id];
 
           db.query(sql, params, (err, res) => {
             if (err) throw err;
             console.log(
-              `Updated employee ${answer.employee} to ${answer.role}.`
+              `Updated employee ${answer.employee} to ${answer.roles}.`
             );
             start();
           });
@@ -264,3 +266,4 @@ function updateRole() {
     });
   });
 }
+
